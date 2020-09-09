@@ -17,33 +17,29 @@ env:
   IMAGE_NAME: ansible
 
 jobs:
-  # Run tests.
-  # See also https://docs.docker.com/docker-hub/builds/automated-testing/
-  test:
+
+  check_version:
     runs-on: ubuntu-latest
-
+    container: ghcr.io/gentoo-docker-builds/gendev:latest
+    outputs:
+      version: ${{ steps.version.outputs.LATEST }}
     steps:
-      - uses: actions/checkout@v2
 
-      - name: Run tests
+      - name: fetch latest available kubectl version in portage
         run: |
-          if [ -f docker-compose.test.yml ]; then
-            docker-compose --file docker-compose.test.yml build
-            docker-compose --file docker-compose.test.yml run sut
-          else
-            docker build . --file Dockerfile
-          fi
+          version=$(ACCEPT_KEYWORDS="~amd64" emerge -s app-admin/ansible | grep "Latest version available" | head -1 | awk '{print $4}')
+          echo "::set-env name=LATEST::$version"
+          echo "::set-output name=LATEST::$version"
+        id: version
 
-  # Push image to GitHub Packages.
-  # See also https://docs.docker.com/docker-hub/builds/
-  push:
-    # Ensure test job passes before pushing image.
-    needs: test
+      - name: latest ansible version
+        run: echo 'Latest available ansible version in portage is' $LATEST
 
+  build_and_push:
+    needs: [check_version]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-
     steps:
+
       - uses: actions/checkout@v2
 
       - name: Build image
@@ -58,15 +54,9 @@ jobs:
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          # Strip git ref prefix from portage run
 
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
+          VERSION=${{needs.check_version.outputs.version}}
 
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
