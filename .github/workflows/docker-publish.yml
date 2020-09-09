@@ -25,7 +25,7 @@ jobs:
       version: ${{ steps.version.outputs.LATEST }}
     steps:
 
-      - name: fetch latest available kubectl version in portage
+      - name: fetch latest available ansible version in portage
         run: |
           version=$(ACCEPT_KEYWORDS="~amd64" emerge -s app-admin/ansible | grep "Latest version available" | head -1 | awk '{print $4}')
           echo "::set-env name=LATEST::$version"
