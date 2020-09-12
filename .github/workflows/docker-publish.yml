@@ -15,7 +15,6 @@ env:
   IMAGE_NAME: ansible
 
 jobs:
-<<<<<<< HEAD
 
   check_version:
     runs-on: ubuntu-latest
