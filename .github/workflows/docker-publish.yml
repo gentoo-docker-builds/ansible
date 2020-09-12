@@ -56,28 +56,6 @@ jobs:
   build_and_push:
     needs: [check_image_version]
     if: needs.check_image_version.outputs.version == 'yes'
-=======
-
-  check_version:
-    runs-on: ubuntu-latest
-    container: ghcr.io/gentoo-docker-builds/gendev:latest
-    outputs:
-      version: ${{ steps.version.outputs.LATEST }}
-    steps:
-
-      - name: fetch latest available ansible version in portage
-        run: |
-          version=$(ACCEPT_KEYWORDS="~amd64" emerge -s app-admin/ansible | grep "Latest version available" | head -1 | awk '{print $4}')
-          echo "::set-env name=LATEST::$version"
-          echo "::set-output name=LATEST::$version"
-        id: version
-
-      - name: latest ansible version
-        run: echo 'Latest available ansible version in portage is' $LATEST
-
-  build_and_push:
-    needs: [check_version]
->>>>>>> 3d57950167163c2f6edd719cb054c5912f5c486b
     runs-on: ubuntu-latest
     steps:
 
@@ -95,12 +73,8 @@ jobs:
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          # Strip git ref prefix from portage run
 
-<<<<<<< HEAD
           # Strip git ref prefix from portage run
-=======
->>>>>>> 3d57950167163c2f6edd719cb054c5912f5c486b
           VERSION=${{needs.check_version.outputs.version}}
 
           echo IMAGE_ID=$IMAGE_ID
