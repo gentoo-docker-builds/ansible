@@ -1,0 +1,6 @@
+# ------------------- useflags for ansible
+
+dev-lang/python sqlite
+net-libs/zeromq drafts
+dev-libs/openssl bindist
+net-misc/openssh bindist
